@@ -1,39 +1,41 @@
 // deno-lint-ignore-file no-unused-vars
 
-export default function (_env) {
-  
-  async function index () {
-    // TODO
-    return Promise.resolve([])
+export default function ({ db }) {
+
+  async function index() {
+    return db.find({})
   }
-  
-  async function create({name, target, secret}) {
-    // TODO
-    return Promise.resolve({ok: true})
+
+  async function create({ name, target, secret }) {
+    return db
+      .insert({ _id: name, name, target, secret })
+      .then(doc => ({ ok: true, _id: doc._id }))
   }
 
   async function doDelete(name) {
-    return Promise.resolve({ok: true})
+    return db
+      .removeOne({ _id: name })
+      .then(_doc => ({ ok: true }))
   }
 
-  async function post({name, job}) {
+  async function post({ name, job }) {
     // TODO
-    return Promise.resolve({ok: true})
+    return Promise.resolve({ ok: true })
   }
 
-  async function get({name, status}) {
+  async function get({ name, status }) {
     // TODO
-    return Promise.resolve({ok: true, jobs: []})
+    return Promise.resolve({ ok: true, jobs: [] })
   }
 
-  async function retry({name, id}) {
-    return Promise.resolve({ok: true})
+  async function retry({ name, id }) {
+    return Promise.resolve({ ok: true })
   }
 
-  async function cancel({name, id}) {
-    return Promise.resolve({ok: true})
+  async function cancel({ name, id }) {
+    return Promise.resolve({ ok: true })
   }
-  
+
   return Object.freeze({
     index,
     create,
