@@ -1,19 +1,29 @@
-# README
+<h1 align="center">hyper-adapter-queue</h1>
+<p align="center">The hyper queue service allows the hyper client to create queues, 
+setting up a webhook endpoint to be invoked everytime a job is posted to the queue.
+This service can provide worker push queues to serverless applications, without having
+to manage state. This adapter uses an in-memory queue and is designed to work with
+local hyper services or services with small workloads.</p>
 
-hyper adapter template for `data` port, use this template to create a hyper
-adapter.
+---
 
-Replace `{{ADAPTER_NAME}}` with your adapter name in `mod.js`
+## Table of Contents
+
+- [Getting Started](#getting-started)
+- [Example](#example)
+- [Testing](#testing)
+- [Contributings](#contributing)
+- [License](#license)
+
+---
+
+## Getting Started
+
+## Example
 
 ## Testing
 
-run `./scripts/test.sh` to lint, check format, and run tests
+## Contributing
 
-run `./scripts/harness.sh` to spin up a local instance of `hyper` using your
-adapter for the data port
+## License
 
-## TODO
-
-- Add automation to set adapter name
-- Add automation to set `port`
-- Add automation to scaffold adapter methods, based on selected `port`
