@@ -15,7 +15,7 @@ test("create queue", async () => {
   });
   assert(result.ok);
   // cleanup
-  await a.delete('testCreate')
+  await a.delete("testCreate");
 });
 
 test("delete queue", async () => {
@@ -28,34 +28,127 @@ test("delete queue", async () => {
   // test
   const result = await a.delete("testDelete");
   assert(result.ok);
-
-
 });
 
 test("list queues", async () => {
   // setup
-  await a.create({ name: 'testList', target: 'https://x.com' })
+  await a.create({ name: "testList", target: "https://x.com" });
   // test
   const result = await a.index();
-  console.log(result);
+  //console.log(result);
   assertEquals(result.length, 1);
   // cleanup
-  await a.delete('testList')
+  await a.delete("testList");
 });
 
-test({ name: 'postjob', async fn() {
-  // setup
-  await a.create({
-    name: 'testPost',
-    target: 'https://jsonplaceholder.typicode.com/posts',
-    secret: 'secret'
-  })
-  const result = await a.post({
-    name: 'testPost', job: { hello: 'world' }
-  })
-  // clean up
-  await a.delete('testPost')
-}, 
+test({
+  name: "postjob",
+  async fn() {
+    // setup
+    await a.create({
+      name: "testPost",
+      target: "https://jsonplaceholder.typicode.com/posts",
+      secret: "secret",
+    });
+    const result = await a.post({
+      name: "testPost",
+      job: { hello: "world" },
+    });
+    assert(result.ok);
+    // clean up
+    await a.delete("testPost");
+  },
   sanitizeResources: false,
-  sanitizeOps: false
-})
+  sanitizeOps: false,
+});
+
+test({
+  name: "get jobs with status error",
+  async fn() {
+    // setup
+    const _fetch = window.fetch;
+    window.fetch = () => Promise.resolve({ ok: false });
+    await a.create({
+      name: "testGet",
+      target: "https://jsonplaceholder.typicode.com/posts",
+      secret: "secret",
+    });
+    await a.post({
+      name: "testGet",
+      job: { hello: "world" },
+    });
+    // test
+    await new Promise((r) => setTimeout(r, 500));
+    const result = await a.get({ name: "testGet", status: "ERROR" });
+    //console.log(result)
+    assert(result.ok);
+
+    // clean up
+    await a.delete("testGet");
+    window.fetch = _fetch;
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});
+
+test({
+  name: "retry job",
+  async fn() {
+    // setup
+    const _fetch = window.fetch;
+    window.fetch = () => Promise.resolve({ ok: false });
+    await a.create({
+      name: "testRetry",
+      target: "https://jsonplaceholder.typicode.com/posts",
+      secret: "secret",
+    });
+    await a.post({
+      name: "testRetry",
+      job: { hello: "world" },
+    });
+    // test
+    await new Promise((r) => setTimeout(r, 500));
+    const { jobs } = await a.get({ name: "testRetry", status: "ERROR" });
+    const job = jobs[0];
+    const result = await a.retry({ name: "testRetry", id: job._id });
+
+    assert(result.ok);
+
+    // clean up
+    await a.delete("testRetry");
+    window.fetch = _fetch;
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});
+
+test({
+  name: "cancel job",
+  async fn() {
+    // setup
+    const _fetch = window.fetch;
+    window.fetch = () => Promise.resolve({ ok: false });
+    await a.create({
+      name: "testCancel",
+      target: "https://jsonplaceholder.typicode.com/posts",
+      secret: "secret",
+    });
+    await a.post({
+      name: "testCancel",
+      job: { hello: "world" },
+    });
+    // test
+    await new Promise((r) => setTimeout(r, 500));
+    const { jobs } = await a.get({ name: "testCancel", status: "ERROR" });
+    const job = jobs[0];
+    const result = await a.cancel({ name: "testCancel", id: job._id });
+
+    assert(result.ok);
+
+    // clean up
+    await a.delete("testCancel");
+    window.fetch = _fetch;
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});

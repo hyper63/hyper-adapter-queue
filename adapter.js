@@ -1,22 +1,22 @@
 // deno-lint-ignore-file no-unused-vars
 import { Queue, R } from "./deps.js";
 
-const { pluck, omit } = R
-const queue = new Queue()
+const { pluck, omit } = R;
+const queue = new Queue();
 
 export default function ({ db }) {
-  async function index() {
+  function index() {
     return db.find({ type: "queue" })
-      .then(pluck('name'));
+      .then(pluck("name"));
   }
 
-  async function create({ name, target, secret }) {
+  function create({ name, target, secret }) {
     return db
       .insert({ type: "queue", _id: name, name, target, secret })
       .then((doc) => ({ ok: true, _id: doc._id }));
   }
 
-  async function doDelete(name) {
+  function doDelete(name) {
     return db
       .removeOne({ _id: name })
       .then((_doc) => ({ ok: true }));
@@ -24,33 +24,52 @@ export default function ({ db }) {
 
   async function post({ name, job }) {
     // TODO
-    job = { type: 'job', ...job, status: 'READY' }
+    job = { queue: name, type: "job", ...job, status: "READY" };
     // get queue data
-    const q = await db.findOne({ _id: name })
+    const q = await db.findOne({ _id: name });
     // store job doc to db
-    job = await db.insert(job)
+    job = await db.insert(job);
     // create job post function
     // push job post function to queue
-    queue.push(async () => await postJob(q, job)
-      .then(result => db.updateOne({ _id: job._id }, { $set: { status: result.status } }))
-      .catch(e => db.updateOne({ _id: job._id }, { $set: { status: 'ERROR' } }))
-      .then(console.log.bind(console))
-    )
+    queue.push(async () =>
+      await postJob(q, job)
+        .then((result) =>
+          db.updateOne({ _id: job._id }, { $set: { status: result.status } })
+        )
+        .catch((e) =>
+          db.updateOne({ _id: job._id }, { $set: { status: "ERROR" } })
+        )
+      //.then(console.log.bind(console))
+    );
     // return success response
     return Promise.resolve({ ok: true, _id: job._id });
   }
 
   async function get({ name, status }) {
-    // TODO
-    return Promise.resolve({ ok: true, jobs: [] });
+    return await db.find({ type: "job", queue: name, status })
+      .then((jobs) => ({ ok: true, jobs, status }));
   }
 
   async function retry({ name, id }) {
+    const job = await db.findOne({ _id: id, type: "job", queue: name });
+    const q = await db.findOne({ type: "queue", _id: name });
+
+    queue.push(async () =>
+      await postJob(q, job)
+        .then((result) =>
+          db.updateOne({ _id: job._id }, { $set: { status: result.status } })
+        )
+        .catch((e) =>
+          db.updateOne({ _id: job._id }, { $set: { status: "ERROR" } })
+        )
+      //.then(console.log.bind(console))
+    );
     return Promise.resolve({ ok: true });
   }
 
   async function cancel({ name, id }) {
-    return Promise.resolve({ ok: true });
+    return await db.removeOne({ _id: id, type: "job", queue: name })
+      .then((res) => ({ ok: true }));
   }
 
   return Object.freeze({
@@ -64,14 +83,14 @@ export default function ({ db }) {
   });
 }
 
-async function postJob(q, job) {
-  const body = omit(['_id', 'status'], job)
+function postJob(q, job) {
+  const body = omit(["_id", "status"], job);
   return fetch(q.target, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json'
+      "Content-Type": "application/json",
     },
-    body: JSON.stringify(body)
+    body: JSON.stringify(body),
   })
-    .then(res => res.ok ? ({ status: 'SUCCESS' }) : ({ status: 'ERROR' }))
+    .then((res) => res.ok ? ({ status: "SUCCESS" }) : ({ status: "ERROR" }));
 }
