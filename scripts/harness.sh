@@ -1,3 +1,3 @@
 #!/bin/bash
 
-deno run --unstable -A ./test/hyper.js
+deno run --no-check --unstable -A ./test/hyper.js
