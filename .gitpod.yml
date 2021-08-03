@@ -1,6 +1,11 @@
 image:
   file: .gitpod.Dockerfile
 
+tasks:
+  - command: |
+      deno cache --lock=deps.js
+      deno cache --lock=dev_deps.js
+
 github:
   prebuilds:
     # enable for the default branch (defaults to true)
