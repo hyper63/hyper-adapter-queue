@@ -3,8 +3,8 @@ image:
 
 tasks:
   - command: |
-      deno cache --lock=deps.js
-      deno cache --lock=dev_deps.js
+      deno cache deps.js --lock=deps_lock.json --no-check 
+      deno cache dev_deps.js --lock=dev_deps_lock.json --no-check 
 
 github:
   prebuilds:
