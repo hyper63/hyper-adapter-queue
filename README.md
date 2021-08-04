@@ -25,20 +25,21 @@ local hyper services or services with small workloads.</p>
 
 ## Getting Started
 
-In order to get started using  `hyper-adapter-queue`, you need to setup a hyper instance:
+In order to get started using `hyper-adapter-queue`, you need to setup a hyper
+instance:
 
 mod.js file:
 
-``` js
-import { core } from 'https://x.nest.land/hyper@1.4.2/mod.js'
-import config from './hyper.config.js'
+```js
+import { core } from "https://x.nest.land/hyper@1.4.2/mod.js";
+import config from "./hyper.config.js";
 
-core(config)
+core(config);
 ```
 
 config file:
 
-``` js
+```js
 import { opine } from "https://x.nest.land/hyper-app-opine@1.2.1/mod.js";
 import queue from "https://x.nest.land/hyper-adapter-queue@0.0.1/mod.js";
 
@@ -53,44 +54,44 @@ export default = {
 ## Example
 
 // create a queue
-``` js
-const hyper = 'https://cloud.hyper.io/apps/test/queue/default'
+
+```js
+const hyper = "https://cloud.hyper.io/apps/test/queue/default";
 fetch(hyper, {
-  method: 'PUT',
+  method: "PUT",
   headers,
   body: JSON.stringify({
-    target: 'https://jsonplaceholder.typicode.com/posts'
-  })
-})
+    target: "https://jsonplaceholder.typicode.com/posts",
+  }),
+});
 ```
 
 // post a job
 
-``` js
-const hyper = 'https://cloud.hyper.io/apps/test/queue/default'
+```js
+const hyper = "https://cloud.hyper.io/apps/test/queue/default";
 fetch(hyper, {
-  method: 'POST',
+  method: "POST",
   headers,
   body: JSON.stringify({
-    hello: 'world'
-  })
-})
+    hello: "world",
+  }),
+});
 ```
 
 ## Testing
 
 Run Tests...
 
-``` sh
+```sh
 ./scripts/test.sh
 ```
 
 Run Test Harness
 
-``` sh
+```sh
 ./scripts/harness.sh
 ```
-
 
 ## Contributing
 
