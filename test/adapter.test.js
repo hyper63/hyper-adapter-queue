@@ -2,7 +2,7 @@ import { assert, validateDataAdapterSchema } from "../dev_deps.js";
 
 import adapterBuilder from "../adapter.js";
 
-const adapter = adapterBuilder({db: null});
+const adapter = adapterBuilder({ db: null });
 
 Deno.test("should implement the port", () => {
   assert(validateDataAdapterSchema(adapter));
