@@ -66,8 +66,8 @@ test({
   name: "get jobs with status error",
   async fn() {
     // setup
-    const _fetch = window.fetch;
-    window.fetch = () => Promise.resolve({ ok: false });
+    const _fetch = globalThis.fetch;
+    globalThis.fetch = () => Promise.resolve({ ok: false });
     await a.create({
       name: "testGet",
       target: "https://jsonplaceholder.typicode.com/posts",
@@ -85,7 +85,7 @@ test({
 
     // clean up
     await a.delete("testGet");
-    window.fetch = _fetch;
+    globalThis.fetch = _fetch;
   },
   sanitizeResources: false,
   sanitizeOps: false,
@@ -95,8 +95,8 @@ test({
   name: "retry job",
   async fn() {
     // setup
-    const _fetch = window.fetch;
-    window.fetch = () => Promise.resolve({ ok: false });
+    const _fetch = globalThis.fetch;
+    globalThis.fetch = () => Promise.resolve({ ok: false });
     await a.create({
       name: "testRetry",
       target: "https://jsonplaceholder.typicode.com/posts",
@@ -116,7 +116,7 @@ test({
 
     // clean up
     await a.delete("testRetry");
-    window.fetch = _fetch;
+    globalThis.fetch = _fetch;
   },
   sanitizeResources: false,
   sanitizeOps: false,
@@ -126,8 +126,8 @@ test({
   name: "cancel job",
   async fn() {
     // setup
-    const _fetch = window.fetch;
-    window.fetch = () => Promise.resolve({ ok: false });
+    const _fetch = globalThis.fetch;
+    globalThis.fetch = () => Promise.resolve({ ok: false });
     await a.create({
       name: "testCancel",
       target: "https://jsonplaceholder.typicode.com/posts",
@@ -147,7 +147,7 @@ test({
 
     // clean up
     await a.delete("testCancel");
-    window.fetch = _fetch;
+    globalThis.fetch = _fetch;
   },
   sanitizeResources: false,
   sanitizeOps: false,
