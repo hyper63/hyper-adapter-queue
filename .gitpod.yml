@@ -2,8 +2,8 @@ image:
   file: .gitpod.Dockerfile
 
 tasks:
-  - init: git config core.hooksPath .hooks
-    command: |
+  - command: |
+      git config core.hooksPath .hooks
       deno cache deps.js --lock=deps_lock.json --no-check 
       deno cache dev_deps.js --lock=dev_deps_lock.json --no-check 
       ./scripts/test.sh
