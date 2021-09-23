@@ -54,7 +54,7 @@ export default function ({ db }) {
 
   async function get({ name, status }) {
     return await db.find({ type: JOB, queue: name, status })
-      .then((jobs) => ({ ok: T, jobs, status }));
+      .then((jobs) => ({ ok: T, jobs }));
   }
 
   async function retry({ name, id }) {
