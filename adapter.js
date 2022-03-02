@@ -1,4 +1,3 @@
-// deno-lint-ignore-file no-unused-vars
 import { Queue, R } from "./deps.js";
 
 const { pluck, omit } = R;
@@ -13,6 +12,9 @@ const [SUCCESS, ERROR, READY, JOB, QUEUE, NAME, T] = [
   true,
 ];
 
+/**
+ * TODO: handle some errors
+ */
 export default function ({ db }) {
   function index() {
     return db.find({ type: QUEUE })
@@ -44,7 +46,7 @@ export default function ({ db }) {
         .then((result) =>
           db.updateOne({ _id: job._id }, { $set: { status: result.status } })
         )
-        .catch((e) =>
+        .catch(() =>
           db.updateOne({ _id: job._id }, { $set: { status: ERROR } })
         )
     );
@@ -66,7 +68,7 @@ export default function ({ db }) {
         .then((result) =>
           db.updateOne({ _id: job._id }, { $set: { status: result.status } })
         )
-        .catch((e) =>
+        .catch(() =>
           db.updateOne({ _id: job._id }, { $set: { status: ERROR } })
         )
     );
@@ -75,7 +77,7 @@ export default function ({ db }) {
 
   async function cancel({ name, id }) {
     return await db.removeOne({ _id: id, type: JOB, queue: name })
-      .then((res) => ({ ok: T }));
+      .then(() => ({ ok: T }));
   }
 
   return Object.freeze({
