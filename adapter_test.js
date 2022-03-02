@@ -1,4 +1,8 @@
-import { assert, assertEquals } from "./dev_deps.js";
+import {
+  assert,
+  assertEquals,
+  validateQueueAdapterSchema,
+} from "./dev_deps.js";
 import { Datastore } from "./deps.js";
 
 import adapter from "./adapter.js";
@@ -6,6 +10,10 @@ import adapter from "./adapter.js";
 const test = Deno.test;
 const db = new Datastore({ filename: "/tmp/hyper-queue.db", autoload: true });
 const a = adapter({ db });
+
+test("should implement the port", () => {
+  assert(validateQueueAdapterSchema(a));
+});
 
 test({
   name: "create queue",
