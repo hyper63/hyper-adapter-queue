@@ -51,6 +51,8 @@ export default = {
 };
 ```
 
+Alternatively, you can pass an object containing a `dir` field
+
 ## Example
 
 // create a queue
