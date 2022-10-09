@@ -1,4 +1,4 @@
-import { Datastore, join } from "./deps.js";
+import { DB, join } from "./deps.js";
 import adapter from "./adapter.js";
 import PORT_NAME from "./port_name.js";
 
@@ -20,8 +20,19 @@ export default (args = { dir: ".", name: "hyper-queue.db" }) => ({
       throw new Error("{ dir, name } or path to file required");
     }
 
-    const db = new Datastore({ filename: file, autoload: true });
-    return { db };
-  }, // load env
+    const db = new DB(file);
+
+    addEventListener("unload", () => {
+      if (db) {
+        try {
+          db.close(true);
+        } catch (e) {
+          console.log(e);
+        }
+      }
+    });
+
+    return { db }; // load env
+  },
   link: (env) => (_) => adapter(env), // link adapter
 });

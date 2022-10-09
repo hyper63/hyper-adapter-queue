@@ -3,12 +3,12 @@ import {
   assertEquals,
   validateQueueAdapterSchema,
 } from "./dev_deps.js";
-import { Datastore } from "./deps.js";
+import { DB } from "./deps.js";
 
 import adapter from "./adapter.js";
 
 const test = Deno.test;
-const db = new Datastore({ filename: "/tmp/hyper-queue.db", autoload: true });
+const db = new DB("./test/hyper-queue.db");
 const a = adapter({ db });
 
 test("should implement the port", () => {
@@ -67,6 +67,9 @@ test({
 test({
   name: "postjob",
   async fn() {
+    const _fetch = globalThis.fetch;
+    globalThis.fetch = () => Promise.resolve({ ok: true });
+
     // setup
     await a.create({
       name: "testPost",
@@ -78,8 +81,10 @@ test({
       job: { hello: "world" },
     });
     assert(result.ok);
+    assert(result.id);
     // clean up
     await a.delete("testPost");
+    globalThis.fetch = _fetch;
   },
   sanitizeResources: false,
   sanitizeOps: false,
@@ -103,8 +108,8 @@ test({
     // test
     await new Promise((r) => setTimeout(r, 500));
     const result = await a.get({ name: "testGet", status: "ERROR" });
-    //console.log(result)
     assert(result.ok);
+    assert(result.jobs.length);
 
     // clean up
     await a.delete("testGet");
