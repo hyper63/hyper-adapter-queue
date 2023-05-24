@@ -25,16 +25,15 @@ local hyper services or services with small workloads.</p>
 
 ## Getting Started
 
-In order to get started using `hyper-adapter-queue`, you need to setup a hyper
-instance:
+In order to get started using `hyper-adapter-queue`, you need to setup a hyper instance:
 
 mod.js file:
 
 ```js
-import { core } from "https://x.nest.land/hyper@1.4.2/mod.js";
-import config from "./hyper.config.js";
+import { core } from 'https://x.nest.land/hyper@1.4.2/mod.js'
+import config from './hyper.config.js'
 
-core(config);
+core(config)
 ```
 
 config file:
@@ -58,27 +57,27 @@ Alternatively, you can pass an object containing a `dir` field
 // create a queue
 
 ```js
-const hyper = "https://cloud.hyper.io/apps/test/queue/default";
+const hyper = 'https://cloud.hyper.io/apps/test/queue/default'
 fetch(hyper, {
-  method: "PUT",
+  method: 'PUT',
   headers,
   body: JSON.stringify({
-    target: "https://jsonplaceholder.typicode.com/posts",
+    target: 'https://jsonplaceholder.typicode.com/posts',
   }),
-});
+})
 ```
 
 // post a job
 
 ```js
-const hyper = "https://cloud.hyper.io/apps/test/queue/default";
+const hyper = 'https://cloud.hyper.io/apps/test/queue/default'
 fetch(hyper, {
-  method: "POST",
+  method: 'POST',
   headers,
   body: JSON.stringify({
-    hello: "world",
+    hello: 'world',
   }),
-});
+})
 ```
 
 ## Testing
