@@ -1,6 +1,6 @@
-import { crocks, HyperErr, isHyperErr, Queue, R } from "./deps.js";
+import { crocks, HyperErr, isHyperErr, Queue, R } from './deps.js'
 
-const { Async } = crocks;
+const { Async } = crocks
 const {
   tap,
   pluck,
@@ -15,23 +15,23 @@ const {
   map,
   assoc,
   omit,
-} = R;
-const queue = new Queue();
+} = R
+const queue = new Queue()
 
 const handleHyperErr = ifElse(
   isHyperErr,
   Async.Resolved,
   Async.Rejected,
-);
+)
 
 const [TABLE, SUCCESS, ERROR, READY, JOB, QUEUE] = [
-  "hyper_adapter_queue",
-  "SUCCESS",
-  "ERROR",
-  "READY",
-  "job",
-  "queue",
-];
+  'hyper_adapter_queue',
+  'SUCCESS',
+  'ERROR',
+  'READY',
+  'job',
+  'queue',
+]
 
 const xQueue = compose(
   filter((v) => !!v),
@@ -42,14 +42,14 @@ const xQueue = compose(
     secret: identity,
     timestmp: identity,
   }),
-  zipObj(["id", "queue", "target", "secret", "timestmp"]),
-);
+  zipObj(['id', 'queue', 'target', 'secret', 'timestmp']),
+)
 
 const xJob = compose(
   // id => _id
   compose(
-    omit(["id"]),
-    (doc) => assoc("_id", doc.id, doc),
+    omit(['id']),
+    (doc) => assoc('_id', doc.id, doc),
   ),
   evolve({
     id: identity,
@@ -58,13 +58,11 @@ const xJob = compose(
     job: (v) => JSON.parse(v),
     timestmp: identity,
   }),
-  zipObj(["id", "job", "status", "queue", "timestmp"]),
-);
+  zipObj(['id', 'job', 'status', 'queue', 'timestmp']),
+)
 
 export default function ({ db }) {
-  const query = Async.fromPromise(async (...args) =>
-    await db.query.bind(db)(...args)
-  );
+  const query = Async.fromPromise(async (...args) => await db.query.bind(db)(...args))
 
   /**
    * Use one table for everything
@@ -77,9 +75,9 @@ export default function ({ db }) {
    * the result cached
    */
   const findOrCreateTable = (() => {
-    let created = false;
+    let created = false
     return () => {
-      if (created) return Async.Resolved();
+      if (created) return Async.Resolved()
       return query(`CREATE TABLE IF NOT EXISTS ${TABLE} (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         type TEXT,
@@ -91,9 +89,9 @@ export default function ({ db }) {
 
         job TEXT,
         status TEXT
-      )`).map(tap(() => created = true));
-    };
-  })();
+      )`).map(tap(() => created = true))
+    }
+  })()
 
   /**
    * Resolves to queue object
@@ -111,8 +109,8 @@ export default function ({ db }) {
           Async.Resolved,
           xQueue,
         ),
-        () => Async.Rejected(HyperErr({ status: 404, msg: "queue not found" })),
-      ));
+        () => Async.Rejected(HyperErr({ status: 404, msg: 'queue not found' })),
+      ))
 
   /**
    * Resolves to a list of jobs
@@ -128,7 +126,7 @@ export default function ({ db }) {
         ([query, params]) => [`${query} AND ${col} = ?`, [...params, value]],
         // do nothing
         identity,
-      );
+      )
 
     return Async.of([
       `SELECT id, job, status, queue, timestmp from ${TABLE} where type = ? AND queue = ?`,
@@ -136,11 +134,11 @@ export default function ({ db }) {
         JOB,
         name,
       ],
-    ]).map(maybeCriteria("status", status))
-      .map(maybeCriteria("id", id))
+    ]).map(maybeCriteria('status', status))
+      .map(maybeCriteria('id', id))
       .chain((args) => query(...args))
-      .map(map(xJob));
-  };
+      .map(map(xJob))
+  }
 
   const queueJob = (q, job, id) =>
     Async((reject, resolve) => {
@@ -149,17 +147,15 @@ export default function ({ db }) {
           Async.of()
             .chain(() =>
               Async.fromPromise(fetch)(q.target, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(job),
               })
             )
             .bichain(
               () => Async.Rejected({ status: ERROR }),
               (res) =>
-                res.ok
-                  ? Async.Resolved({ status: SUCCESS })
-                  : Async.Rejected({ status: ERROR }),
+                res.ok ? Async.Resolved({ status: SUCCESS }) : Async.Rejected({ status: ERROR }),
             ).bichain(
               // Job errored, so keep in persistence
               ({ status }) =>
@@ -176,8 +172,8 @@ export default function ({ db }) {
              * which resolves the outer Async
              */
             .toPromise(),
-      );
-    }).toPromise();
+      )
+    }).toPromise()
 
   function index() {
     return findOrCreateTable()
@@ -188,12 +184,12 @@ export default function ({ db }) {
         )
       )
       .map(map(xQueue))
-      .map(pluck("queue"))
+      .map(pluck('queue'))
       .bichain(
         handleHyperErr,
         Async.Resolved,
       )
-      .toPromise();
+      .toPromise()
   }
 
   function create({ name, target, secret }) {
@@ -204,7 +200,7 @@ export default function ({ db }) {
         Async.Resolved,
         () =>
           Async.Rejected(
-            HyperErr({ status: 409, msg: "queue already exists" }),
+            HyperErr({ status: 409, msg: 'queue already exists' }),
           ),
       )
       // Create queue record
@@ -219,14 +215,14 @@ export default function ({ db }) {
         handleHyperErr,
         Async.Resolved,
       )
-      .toPromise();
+      .toPromise()
   }
 
   function doDelete(name) {
     return findOrCreateTable()
       .chain(() => findQueue(name))
       .bichain(
-        () => Async.Rejected(HyperErr({ status: 404, msg: "queue not found" })),
+        () => Async.Rejected(HyperErr({ status: 404, msg: 'queue not found' })),
         // Delete queue record and any jobs associated
         () =>
           query(
@@ -239,7 +235,7 @@ export default function ({ db }) {
         handleHyperErr,
         Async.Resolved,
       )
-      .toPromise();
+      .toPromise()
   }
 
   function post({ name, job }) {
@@ -252,14 +248,14 @@ export default function ({ db }) {
           [JOB, name, JSON.stringify(job), READY, new Date().toISOString()],
         ).map(compose(xJob, head)).map((j) => {
           // Passively push job to queue
-          queueJob(queue, job, j._id);
-          return { ok: true, id: j._id };
-        });
+          queueJob(queue, job, j._id)
+          return { ok: true, id: j._id }
+        })
       })
       .bichain(
         handleHyperErr,
         Async.Resolved,
-      ).toPromise();
+      ).toPromise()
   }
 
   function get({ name, status }) {
@@ -270,7 +266,7 @@ export default function ({ db }) {
       .bichain(
         handleHyperErr,
         Async.Resolved,
-      ).toPromise();
+      ).toPromise()
   }
 
   function retry({ name, id }) {
@@ -285,19 +281,19 @@ export default function ({ db }) {
             (job) => Async.Resolved({ queue, job }),
             () =>
               Async.Rejected(
-                HyperErr({ ok: false, status: 404, msg: "job not found" }),
+                HyperErr({ ok: false, status: 404, msg: 'job not found' }),
               ),
           ))
       )
       .map(({ job, queue }) => {
         // Passively push job to queue
-        queueJob(queue, job.job, id);
-        return { ok: true };
+        queueJob(queue, job.job, id)
+        return { ok: true }
       })
       .bichain(
         handleHyperErr,
         Async.Resolved,
-      ).toPromise();
+      ).toPromise()
   }
 
   function cancel({ name, id }) {
@@ -315,23 +311,23 @@ export default function ({ db }) {
           ),
         () =>
           Async.Rejected(
-            HyperErr({ ok: false, status: 404, msg: "job not found" }),
+            HyperErr({ ok: false, status: 404, msg: 'job not found' }),
           ),
       ))
       .map(always({ ok: true }))
       .bichain(
         handleHyperErr,
         Async.Resolved,
-      ).toPromise();
+      ).toPromise()
   }
 
   return Object.freeze({
     index,
     create,
-    "delete": doDelete,
+    'delete': doDelete,
     post,
     get,
     retry,
     cancel,
-  });
+  })
 }

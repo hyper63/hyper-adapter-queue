@@ -1,38 +1,38 @@
-import { DB, join } from "./deps.js";
-import adapter from "./adapter.js";
-import PORT_NAME from "./port_name.js";
+import { DB, join } from './deps.js'
+import adapter from './adapter.js'
+import PORT_NAME from './port_name.js'
 
-export default (args = { dir: ".", name: "hyper-queue.db" }) => ({
-  id: "queue",
+export default (args = { dir: '.', name: 'hyper-queue.db' }) => ({
+  id: 'queue',
   port: PORT_NAME,
   load: () => {
     // allow passing a string or object with { dir } field
-    let file;
-    if (typeof args === "string") {
-      file = args;
-    } else if (typeof args === "object") {
-      const dir = args.dir || ".";
-      const name = args.name || "hyper-queue.db";
-      file = join(dir, name);
+    let file
+    if (typeof args === 'string') {
+      file = args
+    } else if (typeof args === 'object') {
+      const dir = args.dir || '.'
+      const name = args.name || 'hyper-queue.db'
+      file = join(dir, name)
     }
 
-    if (!file || typeof file !== "string") {
-      throw new Error("{ dir, name } or path to file required");
+    if (!file || typeof file !== 'string') {
+      throw new Error('{ dir, name } or path to file required')
     }
 
-    const db = new DB(file);
+    const db = new DB(file)
 
-    addEventListener("unload", () => {
+    addEventListener('unload', () => {
       if (db) {
         try {
-          db.close(true);
+          db.close(true)
         } catch (e) {
-          console.log(e);
+          console.log(e)
         }
       }
-    });
+    })
 
-    return { db }; // load env
+    return { db } // load env
   },
   link: (env) => (_) => adapter(env), // link adapter
-});
+})
