@@ -13,8 +13,6 @@ const {
   identity,
   head,
   map,
-  assoc,
-  omit,
 } = R
 const queue = new Queue()
 
@@ -46,17 +44,10 @@ const xQueue = compose(
 )
 
 const xJob = compose(
-  // id => _id
-  compose(
-    omit(['id']),
-    (doc) => assoc('_id', doc.id, doc),
-  ),
   evolve({
     id: identity,
-    queue: identity,
     status: identity,
     job: (v) => JSON.parse(v),
-    timestmp: identity,
   }),
   zipObj(['id', 'job', 'status', 'queue', 'timestmp']),
 )
@@ -248,8 +239,8 @@ export default function ({ db }) {
           [JOB, name, JSON.stringify(job), READY, new Date().toISOString()],
         ).map(compose(xJob, head)).map((j) => {
           // Passively push job to queue
-          queueJob(queue, job, j._id)
-          return { ok: true, id: j._id }
+          queueJob(queue, job, j.id)
+          return { ok: true, id: j.id }
         })
       })
       .bichain(
