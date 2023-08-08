@@ -1,4 +1,4 @@
-import { assert, assertEquals, validateQueueAdapterSchema } from './dev_deps.js'
+import { assert, assertEquals, createHyperVerify, validateQueueAdapterSchema } from './dev_deps.js'
 import { DB } from './deps.js'
 
 import adapter from './adapter.js'
@@ -126,16 +126,56 @@ test('adapter', async (t) => {
 
   await t.step('post', async (t) => {
     await t.step({
-      name: 'should post the job',
+      name: 'should post the job signed with the secret',
       async fn() {
+        const secret = 'secret'
+        const hyperVerify = createHyperVerify(secret)
+
         const _fetch = globalThis.fetch
-        globalThis.fetch = () => Promise.resolve({ ok: true })
+        globalThis.fetch = async (_url, options) => {
+          assert(options.headers['X-HYPER-SIGNATURE'])
+          assert(
+            hyperVerify(
+              options.headers['X-HYPER-SIGNATURE'],
+              await new Response(options.body).json(),
+            ).ok,
+          )
+          return Promise.resolve({ ok: true })
+        }
 
         // setup
         await a.create({
           name: 'testPost',
           target: 'https://jsonplaceholder.typicode.com/posts',
-          secret: 'secret',
+          secret,
+        })
+        const result = await a.post({
+          name: 'testPost',
+          job: { hello: 'world' },
+        })
+        assert(result.ok)
+        assert(result.id)
+        // clean up
+        await a.delete('testPost')
+        globalThis.fetch = _fetch
+      },
+      sanitizeResources: false,
+      sanitizeOps: false,
+    })
+
+    await t.step({
+      name: 'should post the job NOT signed with the secret',
+      async fn() {
+        const _fetch = globalThis.fetch
+        globalThis.fetch = (_url, options) => {
+          assert(!options.headers['X-HYPER-SIGNATURE'])
+          return Promise.resolve({ ok: true })
+        }
+
+        // setup
+        await a.create({
+          name: 'testPost',
+          target: 'https://jsonplaceholder.typicode.com/posts',
         })
         const result = await a.post({
           name: 'testPost',

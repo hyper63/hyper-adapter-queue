@@ -1,4 +1,5 @@
-import { crocks, HyperErr, isHyperErr, Queue, R } from './deps.js'
+import { crocks, HyperErr, isHyperErr, R } from './deps.js'
+import { computeSignature, Queue } from './utils.ts'
 
 const { Async } = crocks
 const {
@@ -14,7 +15,6 @@ const {
   head,
   map,
 } = R
-const queue = new Queue()
 
 const handleHyperErr = ifElse(
   isHyperErr,
@@ -52,7 +52,7 @@ const xJob = compose(
   zipObj(['id', 'job', 'status', 'queue', 'timestmp']),
 )
 
-export default function ({ db }) {
+export default function ({ db, queue = new Queue() }) {
   const query = Async.fromPromise(async (...args) => await db.query.bind(db)(...args))
 
   /**
@@ -133,13 +133,23 @@ export default function ({ db }) {
 
   const queueJob = (q, job, id) =>
     Async((reject, resolve) => {
+      const timeInMilli = new Date().getTime().toString()
       queue.push(
         () =>
           Async.of()
             .chain(() =>
               Async.fromPromise(fetch)(q.target, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                  'Content-Type': 'application/json',
+                  ...(q.secret
+                    ? {
+                      'X-HYPER-SIGNATURE': `t=${timeInMilli},sig=${
+                        computeSignature(q.secret, job, timeInMilli)
+                      }`,
+                    }
+                    : {}),
+                },
                 body: JSON.stringify(job),
               })
             )
