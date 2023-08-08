@@ -27,71 +27,78 @@ local hyper services or services with small workloads.</p>
 
 In order to get started using `hyper-adapter-queue`, you need to setup a hyper instance:
 
-mod.js file:
-
 ```js
-import { core } from 'https://x.nest.land/hyper@1.4.2/mod.js'
-import config from './hyper.config.js'
+import { default as app } from 'https://raw.githubusercontent.com/hyper63/hyper/hyper-app-express%40v1.2.0/packages/app-express/mod.ts'
+import { default as hyper } from 'https://raw.githubusercontent.com/hyper63/hyper/hyper%40v4.2.0/packages/core/mod.ts'
 
-core(config)
-```
+import { default as queue } from 'https://raw.githubusercontent.com/hyper63/hyper-adapter-queue/v0.3.0/mod.js'
 
-config file:
-
-```js
-import { opine } from "https://x.nest.land/hyper-app-opine@1.2.1/mod.js";
-import queue from "https://x.nest.land/hyper-adapter-queue@0.0.1/mod.js";
-
-export default = {
-  app: opine,
+const hyperConfig = {
+  app,
   adapters: [
-    { port: 'queue', plugins: [queue('/tmp/hyper-queue.db')] },
+    { port: 'queue', plugins: [queue({ dir: '.', name: 'hyper-queue.db' })] },
   ],
-};
+}
+
+hyper(hyperConfig)
 ```
 
-Alternatively, you can pass an object containing a `dir` field
+> if no options are passed to the adapter, then a sqlite db `hyper-queue.db` will be placed into the
+> cwd
 
 ## Example
 
 // create a queue
 
 ```js
-const hyper = 'https://cloud.hyper.io/apps/test/queue/default'
+const hyper = 'https://<hyper-host>/queue/<queue-name>'
 fetch(hyper, {
   method: 'PUT',
-  headers,
   body: JSON.stringify({
     target: 'https://jsonplaceholder.typicode.com/posts',
+    secret: 'shhhh',
   }),
-})
+}) // { ok: true }
 ```
 
-// post a job
+// post a job to the queue
 
 ```js
-const hyper = 'https://cloud.hyper.io/apps/test/queue/default'
+const hyper = 'https://<hyper-host>/queue/<queue-name>'
 fetch(hyper, {
   method: 'POST',
-  headers,
   body: JSON.stringify({
     hello: 'world',
   }),
-})
+}) // { ok: true, id: 123 }
+```
+
+// fetch queued jobs
+
+```js
+const hyper = 'https://<hyper-host>/queue/<queue-name>' + new URLSearchParams({ status: 'READY' })
+fetch(hyper) // { ok: true, jobs: [] }
+```
+
+// fetch errored jobs (DLQ)
+
+```js
+const hyper = 'https://<hyper-host>/queue/<queue-name>' + new URLSearchParams({ status: 'ERROR' })
+fetch(hyper) // { ok: true, jobs: [] }
 ```
 
 ## Testing
 
-Run Tests...
+Run Tests
 
 ```sh
-./scripts/test.sh
+deno task test
 ```
 
 Run Test Harness
 
 ```sh
-./scripts/harness.sh
+deno task test:harness
 ```
 
 ## Contributing
