@@ -13,15 +13,15 @@ local hyper services or services with small workloads.</p>
 
 ---
 
-## Table of Contents
+<!-- toc -->
 
 - [Getting Started](#getting-started)
 - [Example](#example)
 - [Testing](#testing)
-- [Contributings](#contributing)
+- [Contributing](#contributing)
 - [License](#license)
 
----
+<!-- tocstop -->
 
 ## Getting Started
 
